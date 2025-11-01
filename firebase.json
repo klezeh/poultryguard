@@ -1,1 +1,42 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"poultry-guard","appId":"1:930535450860:android:a9565b17b2c802e37d9dc9","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"poultry-guard","configurations":{"android":"1:930535450860:android:a9565b17b2c802e37d9dc9","ios":"1:930535450860:ios:3fc9a4915ab6478c7d9dc9","macos":"1:930535450860:ios:3fc9a4915ab6478c7d9dc9","web":"1:930535450860:web:4bc35094f8a6beec7d9dc9","windows":"1:930535450860:web:b3f1dbeade0643bc7d9dc9"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "farm-space",
+          "appId": "1:437137578071:android:6a01b743be11e13764ab12",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "farm-space",
+          "configurations": {
+            "android": "1:437137578071:android:6a01b743be11e13764ab12",
+            "ios": "1:437137578071:ios:d104737aad075a5364ab12",
+            "macos": "1:437137578071:ios:d104737aad075a5364ab12",
+            "web": "1:437137578071:web:1cfb1cdb9ba3ac8a64ab12",
+            "windows": "1:437137578071:web:a948a8a0f3d88d2264ab12"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint",
+        "npm --prefix \"$RESOURCE_DIR\" run build"
+      ]
+    }
+  ]
+}

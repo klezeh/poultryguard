@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "module": "commonjs", // Or "esnext" if you prefer modern imports
+    "target": "es2017", // Adjust based on your Node.js runtime in Cloud Functions
+    "lib": ["es2017", "dom"], // `dom` is often included for some utility types, though functions are server-side
+    "sourceMap": true,
+    "strict": true,
+    "esModuleInterop": true, // Important for mixing require() and import
+    "resolveJsonModule": true, // If you import JSON files
+    "outDir": "lib" // Where compiled JavaScript goes
+  },
+  "compileOnSave": true,
+  "include": [
+    "src" // This should ensure your 'src' directory is included
+  ]
+}
+

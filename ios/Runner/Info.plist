@@ -5,7 +5,7 @@
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
 		<key>CFBundleDisplayName</key>
-		<string>Poultryguard</string>
+		<string>Farm Space</string>
 		<key>CFBundleExecutable</key>
 		<string>$(EXECUTABLE_NAME)</string>
 		<key>CFBundleIdentifier</key>
@@ -48,9 +48,8 @@
 		<key>UIStatusBarHidden</key>
 		<false/>
 		<key>NSCameraUsageDescription</key>
-        <string>Scan your card to add it automatically</string>
-        <key>NSCameraUsageDescription
-        &lt;string&gt;To scan cards&lt;/string&gt;</key>
-        <string>To scan cards</string>
+		<string>Scan your card to add it automatically</string>
+		<key>NSCameraUsageDescription &lt;string>To scan cards&lt;/string></key>
+		<string>To scan cards</string>
 	</dict>
 </plist>

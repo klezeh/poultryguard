@@ -10,45 +10,102 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
+    
+  
+  csv: ^6.0.0
   cupertino_icons: ^1.0.6
   flutter_native_splash: ^2.4.0
   provider: ^6.1.2
   ionicons: ^0.2.2
   collection: ^1.18.0
-  flutter_stripe: ^10.1.1
+  flutter_stripe: ^12.1.0
   http: ^1.2.1
-  flutter_dotenv: ^5.1.0
+  flutter_dotenv: ^6.0.0
   dio: ^5.4.3+1
-  flutter_gemini: ^2.0.3
+  flutter_gemini: ^3.0.0
   dash_chat_2: ^0.0.20
   image_picker: ^1.1.0
-  intl: ^0.18.1
+  intl: ^0.19.0
   url_launcher: ^6.2.6
-  firebase_core: ^2.30.1
-  firebase_auth: ^4.19.4
+  firebase_core: ^4.2.0
+  firebase_auth: ^6.1.1
+  hive: ^2.2.3      
+  hive_flutter: ^1.1.0
+  path_provider: ^2.1.2
+  open_file: ^3.3.2
+  share_plus: ^12.0.1
+  share_plus_platform_interface: ^6.0.0
+  badges: ^3.1.1
+  flutter_local_notifications: ^19.2.1
+  flutter_speed_dial: ^7.0.0
+  shared_preferences: ^2.5.3
+  dropdown_button2: ^2.3.9
+  font_awesome_flutter: ^10.7.0
+  smooth_page_indicator: ^1.2.1
+  curved_navigation_bar: ^1.0.3
+  lottie: ^3.1.0
+  cloud_firestore: ^6.0.3
+  connectivity_plus: ^7.0.0
+  cloud_functions: ^6.0.3
+  timezone: ^0.10.1
+  flutter_riverpod: ^3.0.3
+  timeago: ^3.7.1
+  firebase_messaging: ^16.0.3
+  package_info_plus: ^9.0.0
+
+  
+  
+ 
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.0
+  flutter_lints: ^6.0.0
+  hive_generator: ^2.0.1 
+  build_runner: ^2.4.8
+  flutter_launcher_icons: ^0.14.4
+
+  
+  
+
+ 
+
 
 flutter:
   uses-material-design: true
 
   assets:
     - assets/images/
-    - assets/images/logo/app_logo.png
-    - assets/images/products/equipments/
-    - assets/images/products/medication/
-    - assets/images/products/supplements/
+    - assets/config/
+    - assets/config.json
+    - assets/images/logo/app_logo.png   
     - .env
+    - assets/lottie/
+  
+    
 
 
+flutter_native_splash:
+  color: "#ffffff"
+  image: assets/images/logo/app_logo.png
+  android_gravity: center 
+  android: true
+  ios: true
+  web: false
+  fullscreen: true
 
-  fonts:
+fonts:
      - family: JosefinSans
        fonts:
          - asset: fonts/JosefinSans-Regular.ttf
   #       - asset: fonts/Schyler-Italic.ttf
   #         style: italic
+
+
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/app_icon.png"
+  adaptive_icon_foreground: "assets/app_icon.png"
+  remove_alpha_ios: true

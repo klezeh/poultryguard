@@ -1,0 +1,10 @@
+{
+  "theme": {
+    "authScreen": {
+      "backgroundColorStart": "#2E7D32",
+      "backgroundColorEnd": "#4CAF50",
+      "logoText": "🐔",
+      "logoColor": "#FFFFFF"
+    }
+  }
+}

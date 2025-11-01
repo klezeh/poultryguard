@@ -1,0 +1,361 @@
+import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:hive/hive.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:intl/intl.dart';
+
+// Import your user session provider
+import 'package:poultryguard/providers/user_session_provider.dart';
+
+// Import all necessary models
+import 'package:poultryguard/models/expense.dart';
+import 'package:poultryguard/models/income.dart';
+import 'package:poultryguard/models/bird_batch.dart';
+import 'package:poultryguard/models/batch_vaccination_event.dart';
+import 'package:poultryguard/models/vaccination_record.dart';
+import 'package:poultryguard/models/egg_collected.dart';
+import 'package:poultryguard/models/egg_supplied.dart';
+import 'package:poultryguard/models/isolation_record.dart';
+import 'package:poultryguard/models/mortality_record.dart';
+import 'package:poultryguard/models/environment_record.dart';
+import 'package:poultryguard/models/feed_used.dart';
+import 'package:poultryguard/models/lighting_record.dart';
+import 'package:poultryguard/models/temperature_humidity_record.dart';
+import 'package:poultryguard/models/observation_record.dart';
+import 'package:poultryguard/models/release_log.dart';
+import 'package:poultryguard/models/poultry_task.dart';
+
+// Import your notification models and providers
+import 'package:poultryguard/models/notification.dart';
+import 'package:poultryguard/providers/notification_provider.dart';
+
+// FirestoreSyncable and DataType enum remain the same
+abstract class FirestoreSyncable extends HiveObject {
+  String? firestoreDocId;
+  DateTime? createdAt;
+  late bool isSynced;
+  late bool isDeleted;
+  Map<String, dynamic> toMap();
+  Future<void> save();
+  Future<void> delete();
+  dynamic get key;
+}
+
+enum DataType {
+  batches,
+  expenses,
+  incomes,
+  vaccinationRecords,
+  batchVaccinationEvents,
+  eggCollected,
+  eggSupplied,
+  isolation,
+  mortality,
+  environmentRecords,
+  feedUsed,
+  lightingRecords,
+  temperatureHumidityRecords,
+  observationRecords,
+  releaseLog,
+  dailyTaskCompletions,
+  poultryTasks,
+}
+
+// DataSyncService provider – now passes in Hive Box instances
+final dataSyncServiceProvider = Provider.autoDispose<DataSyncService>((ref) {
+  final service = DataSyncService(
+    ref,
+    Hive.box<BirdBatch>('batches'),
+    Hive.box<BatchVaccinationEvent>('batch_vaccinations'),
+    Hive.box<MortalityRecord>('mortality'),
+    Hive.box<Map<dynamic, dynamic>>('daily_task_completion'),
+    Hive.box<Expense>('expenses'),
+    Hive.box<Income>('income'),
+    Hive.box<EggCollected>('egg_collected'),
+    Hive.box<EggSupplied>('egg_supplied'),
+    Hive.box<IsolationRecord>('isolation'),
+    Hive.box<EnvironmentRecord>('environment_records'),
+    Hive.box<FeedUsed>('feed_used'),
+    Hive.box<LightingRecord>('lighting_records'),
+    Hive.box<TemperatureHumidityRecord>('temperature_humidity_records'),
+    Hive.box<ObservationRecord>('observation_records'),
+    Hive.box<ReleaseLog>('release_log'),
+    Hive.box<PoultryTask>('poultryTasks'),
+    Hive.box<VaccinationRecord>('vaccination_records'),
+  );
+  
+  // REFACTORED: Start listeners when the provider is created.
+  service.startListeners(); 
+
+  // REFACTORED: Use autoDispose to automatically call dispose when no longer used.
+  ref.onDispose(() => service.dispose());
+
+  return service;
+});
+
+class DataSyncService {
+  final Ref _ref;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+  bool _isOnline = false;
+  bool _isSyncing = false;
+  Timer? _syncTimer;
+
+  // --- REFACTORED: REMOVED STATE VARIABLES ---
+  // String? _currentUserId; // REMOVED
+  // String? _currentFarmId; // REMOVED
+
+  // Hive Box references remain the same
+  final Box<BirdBatch> _batchBox;
+  final Box<BatchVaccinationEvent> _batchVaccinationEventBox;
+  final Box<MortalityRecord> _mortalityBox;
+  final Box<Map<dynamic, dynamic>> _dailyTaskCompletionBox;
+  final Box<Expense> _expensesBox;
+  final Box<Income> _incomesBox;
+  final Box<EggCollected> _eggCollectedBox;
+  final Box<EggSupplied> _eggSuppliedBox;
+  final Box<IsolationRecord> _isolationBox;
+  final Box<EnvironmentRecord> _environmentRecordsBox;
+  final Box<FeedUsed> _feedUsedBox;
+  final Box<LightingRecord> _lightingRecordsBox;
+  final Box<TemperatureHumidityRecord> _temperatureHumidityRecordsBox;
+  final Box<ObservationRecord> _observationRecordsBox;
+  final Box<ReleaseLog> _releaseLogBox;
+  final Box<PoultryTask> _poultryTasksBox;
+  final Box<VaccinationRecord> _vaccinationRecordsBox;
+
+  // Maps remain the same
+  final Map<DataType, String> _boxToCollectionMap = {
+    DataType.batches: 'batches',
+    DataType.expenses: 'expenses',
+    DataType.incomes: 'incomes',
+    DataType.vaccinationRecords: 'vaccination_records',
+    DataType.batchVaccinationEvents: 'batch_vaccination_events',
+    DataType.eggCollected: 'egg_collected',
+    DataType.eggSupplied: 'egg_supplied',
+    DataType.isolation: 'isolation',
+    DataType.mortality: 'mortality',
+    DataType.environmentRecords: 'environment_records',
+    DataType.feedUsed: 'feed_used',
+    DataType.lightingRecords: 'lighting_records',
+    DataType.temperatureHumidityRecords: 'temperature_humidity_records',
+    DataType.observationRecords: 'observation_records',
+    DataType.releaseLog: 'release_log',
+    DataType.dailyTaskCompletions: 'daily_task_completion_maps',
+    DataType.poultryTasks: 'poultryTasks',
+  };
+
+  final Map<DataType, Function> _fromMapFactories = {
+    DataType.batches: BirdBatch.fromMap,
+    DataType.expenses: Expense.fromMap,
+    DataType.incomes: Income.fromMap,
+    DataType.vaccinationRecords: VaccinationRecord.fromMap,
+    DataType.batchVaccinationEvents: BatchVaccinationEvent.fromMap,
+    DataType.eggCollected: EggCollected.fromMap,
+    DataType.eggSupplied: EggSupplied.fromMap,
+    DataType.isolation: IsolationRecord.fromMap,
+    DataType.mortality: MortalityRecord.fromMap,
+    DataType.environmentRecords: EnvironmentRecord.fromMap,
+    DataType.feedUsed: FeedUsed.fromMap,
+    DataType.lightingRecords: LightingRecord.fromMap,
+    DataType.temperatureHumidityRecords: TemperatureHumidityRecord.fromMap,
+    DataType.observationRecords: ObservationRecord.fromMap,
+    DataType.releaseLog: ReleaseLog.fromMap,
+    DataType.poultryTasks: PoultryTask.fromMap,
+  };
+
+  DataSyncService(
+    this._ref,
+    this._batchBox,
+    this._batchVaccinationEventBox,
+    this._mortalityBox,
+    this._dailyTaskCompletionBox,
+    this._expensesBox,
+    this._incomesBox,
+    this._eggCollectedBox,
+    this._eggSuppliedBox,
+    this._isolationBox,
+    this._environmentRecordsBox,
+    this._feedUsedBox,
+    this._lightingRecordsBox,
+    this._temperatureHumidityRecordsBox,
+    this._observationRecordsBox,
+    this._releaseLogBox,
+    this._poultryTasksBox,
+    this._vaccinationRecordsBox,
+  );
+
+  // --- REFACTORED: NO LONGER NEEDS USER/FARM ID AS ARGUMENTS ---
+  Future<void> startListeners() async {
+    print('DataSyncService: Starting listeners.');
+    try {
+      final connectivityResult = await Connectivity().checkConnectivity();
+      _isOnline = connectivityResult.contains(ConnectivityResult.mobile) ||
+                  connectivityResult.contains(ConnectivityResult.wifi);
+
+      await _connectivitySubscription?.cancel();
+      _connectivitySubscription = Connectivity().onConnectivityChanged.listen((results) {
+        final newOnlineStatus = results.contains(ConnectivityResult.mobile) ||
+                                results.contains(ConnectivityResult.wifi);
+        if (newOnlineStatus != _isOnline) {
+          _isOnline = newOnlineStatus;
+          if (_isOnline) {
+            print('Network back online. Triggering sync...');
+            triggerManualSync();
+          }
+        }
+      });
+
+      _startSyncTimer();
+      await triggerManualSync();
+    } catch (e) {
+      print('Error initializing DataSyncService listeners: $e');
+    }
+  }
+
+  // --- REFACTORED: `onUserLogout` is replaced by `dispose` ---
+  void dispose() {
+    print('DataSyncService: Disposing. Stopping all operations.');
+    _stopSyncTimer();
+    _connectivitySubscription?.cancel();
+  }
+
+  void _startSyncTimer() {
+    _stopSyncTimer();
+    _syncTimer = Timer.periodic(const Duration(minutes: 5), (timer) {
+      print('Automatic sync triggered by timer.');
+      triggerManualSync();
+    });
+  }
+
+  void _stopSyncTimer() {
+    _syncTimer?.cancel();
+    _syncTimer = null;
+  }
+
+  // --- REFACTORED: THIS IS THE CORE OF THE CHANGE ---
+  Future<void> triggerManualSync() async {
+    // 1. Read the session state fresh every time.
+    final session = _ref.read(userSessionProvider);
+    final farmId = session.farmId;
+
+    // 2. Perform guard checks against the fresh state.
+    if (!_isOnline || !session.isAuthenticated || farmId == null || farmId.isEmpty) {
+      print("Manual sync blocked:");
+      print("- isOnline: $_isOnline");
+      print("- isAuthenticated: ${session.isAuthenticated}");
+      print("- farmId: $farmId");
+      return;
+    }
+
+    // 3. Pass the validated farmId to the internal sync method.
+    await _syncData(farmId);
+  }
+  
+  // --- REFACTORED: Takes farmId as a parameter ---
+  String _getCollectionPath(String collectionName, String farmId) {
+    return 'farms/$farmId/$collectionName';
+  }
+
+  // --- REFACTORED: Takes farmId as a parameter ---
+  Future<void> _syncData(String farmId) async {
+    if (_isSyncing) {
+      print('Sync already in progress. Skipping sync attempt.');
+      return;
+    }
+
+    _isSyncing = true;
+    print('Starting data sync for farm: $farmId');
+
+    try {
+      // Pass farmId down to the next methods
+      await _pushLocalChanges(farmId);
+      await _pullAndMergeRemoteChanges(farmId);
+      print('Data sync complete.');
+      _checkForAlerts();
+    } catch (e) {
+      print('Error during sync: $e');
+    } finally {
+      _isSyncing = false;
+    }
+  }
+
+  // _checkForAlerts and related methods remain the same as they operate on local Hive data.
+  void _checkForAlerts() { /* ... unchanged ... */ }
+  void _checkMissedVaccinations(NotificationNotifier notifier, List<AppNotification> existing) { /* ... unchanged ... */ }
+  void _checkHighMortality(NotificationNotifier notifier, List<AppNotification> existing) { /* ... unchanged ... */ }
+  
+  // --- REFACTORED: Takes farmId as a parameter ---
+  Future<void> _pushLocalChanges(String farmId) async {
+    print('Pushing local unsynced data...');
+    final WriteBatch batch = _firestore.batch();
+    bool hasWritesInBatch = false;
+
+    final List<MapEntry<dynamic, FirestoreSyncable>> itemsToDeleteLocally = [];
+    final List<MapEntry<dynamic, FirestoreSyncable>> itemsToMarkSyncedLocally = [];
+    final List<MapEntry<dynamic, Map<dynamic, dynamic>>> dailyCompletionsToMarkSyncedLocally = [];
+
+    for (var entry in _boxToCollectionMap.entries) {
+      final DataType dataType = entry.key;
+      final String collectionNameInFirestore = entry.value;
+
+      final String? hiveBoxName = _getHiveBoxName(dataType);
+      if (hiveBoxName == null) continue;
+
+      Box? currentBox;
+
+      switch (dataType) {
+        // ... switch cases to assign currentBox remain the same ...
+      }
+
+      if (currentBox == null) continue;
+      
+      // --- REFACTORED: Pass farmId to get the collection path ---
+      final CollectionReference collectionRef = _firestore.collection(_getCollectionPath(collectionNameInFirestore, farmId));
+
+      // The rest of the push logic remains unchanged as it uses collectionRef
+      // ...
+    }
+    // ... code to commit the batch and update local Hive data ...
+  }
+
+  // ... _getHiveBoxName method remains unchanged ...
+  String? _getHiveBoxName(DataType dataType) { /* ... unchanged ... */ }
+
+  // ... _pushDailyTaskCompletionsToBatch method remains unchanged ...
+  Future<bool> _pushDailyTaskCompletionsToBatch( /* ... */ ) async { /* ... unchanged ... */ }
+  
+  // --- REFACTORED: Takes farmId as a parameter ---
+  Future<void> _pullAndMergeRemoteChanges(String farmId) async {
+    print('Pulling and merging data from Firestore...');
+    for (var entry in _boxToCollectionMap.entries) {
+      final DataType dataType = entry.key;
+      final String collectionNameInFirestore = entry.value;
+      try {
+        final String? hiveBoxName = _getHiveBoxName(dataType);
+        if (hiveBoxName == null || !Hive.isBoxOpen(hiveBoxName)) continue;
+        final Box box = Hive.box(hiveBoxName);
+        
+        // --- REFACTORED: Pass farmId to get the collection path ---
+        final CollectionReference collectionRef = _firestore.collection(_getCollectionPath(collectionNameInFirestore, farmId));
+
+        if (dataType == DataType.dailyTaskCompletions) {
+          await _fetchAndMergeDailyTaskCompletions(box as Box<Map<dynamic, dynamic>>, _getCollectionPath(collectionNameInFirestore, farmId));
+          continue;
+        }
+
+        // The rest of the pull logic remains the same
+        // ...
+      } catch (e) {
+        print('Error fetching and merging data for $collectionNameInFirestore: $e');
+      }
+    }
+  }
+
+  // ... _fetchAndMergeDailyTaskCompletions method remains unchanged ...
+  Future<void> _fetchAndMergeDailyTaskCompletions(Box<Map<dynamic, dynamic>> box, String collectionPath) async { /* ... unchanged ... */ }
+}
+
+// ... your extension method remains unchanged ...
+extension IterableExtension<T> on Iterable<T> { /* ... unchanged ... */ }

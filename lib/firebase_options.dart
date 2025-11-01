@@ -41,48 +41,47 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyB4QNKPlWfjy503yq7c2AeMRN0f1d9hm5A',
-    appId: '1:930535450860:web:4bc35094f8a6beec7d9dc9',
-    messagingSenderId: '930535450860',
-    projectId: 'poultry-guard',
-    authDomain: 'poultry-guard.firebaseapp.com',
-    storageBucket: 'poultry-guard.appspot.com',
-    measurementId: 'G-W2DE6NBW5V',
+    apiKey: 'AIzaSyDwcR12y2EYn8QsmqNJz-Xcyu-Rl5BU0EU',
+    appId: '1:437137578071:web:1cfb1cdb9ba3ac8a64ab12',
+    messagingSenderId: '437137578071',
+    projectId: 'farm-space',
+    authDomain: 'farm-space.firebaseapp.com',
+    storageBucket: 'farm-space.firebasestorage.app',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCQpyUgGYC4Zo_gGhDTv_gyIEowZUB7G4Q',
-    appId: '1:930535450860:android:a9565b17b2c802e37d9dc9',
-    messagingSenderId: '930535450860',
-    projectId: 'poultry-guard',
-    storageBucket: 'poultry-guard.appspot.com',
+    apiKey: 'AIzaSyCKFz7cbCVcU9AMaHBV9UawvLz8qRSL6Fs',
+    appId: '1:437137578071:android:6a01b743be11e13764ab12',
+    messagingSenderId: '437137578071',
+    projectId: 'farm-space',
+    storageBucket: 'farm-space.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDgee85l_0iIpVuPNucufdMg58NHfhomSE',
-    appId: '1:930535450860:ios:3fc9a4915ab6478c7d9dc9',
-    messagingSenderId: '930535450860',
-    projectId: 'poultry-guard',
-    storageBucket: 'poultry-guard.appspot.com',
+    apiKey: 'AIzaSyDvImsiSrPLhmEtJ4zHu0MjLq87c1RmNvQ',
+    appId: '1:437137578071:ios:d104737aad075a5364ab12',
+    messagingSenderId: '437137578071',
+    projectId: 'farm-space',
+    storageBucket: 'farm-space.firebasestorage.app',
     iosBundleId: 'com.example.poultryguard',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyDgee85l_0iIpVuPNucufdMg58NHfhomSE',
-    appId: '1:930535450860:ios:3fc9a4915ab6478c7d9dc9',
-    messagingSenderId: '930535450860',
-    projectId: 'poultry-guard',
-    storageBucket: 'poultry-guard.appspot.com',
+    apiKey: 'AIzaSyDvImsiSrPLhmEtJ4zHu0MjLq87c1RmNvQ',
+    appId: '1:437137578071:ios:d104737aad075a5364ab12',
+    messagingSenderId: '437137578071',
+    projectId: 'farm-space',
+    storageBucket: 'farm-space.firebasestorage.app',
     iosBundleId: 'com.example.poultryguard',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyB4QNKPlWfjy503yq7c2AeMRN0f1d9hm5A',
-    appId: '1:930535450860:web:b3f1dbeade0643bc7d9dc9',
-    messagingSenderId: '930535450860',
-    projectId: 'poultry-guard',
-    authDomain: 'poultry-guard.firebaseapp.com',
-    storageBucket: 'poultry-guard.appspot.com',
-    measurementId: 'G-71NGG6WYY0',
+    apiKey: 'AIzaSyDwcR12y2EYn8QsmqNJz-Xcyu-Rl5BU0EU',
+    appId: '1:437137578071:web:a948a8a0f3d88d2264ab12',
+    messagingSenderId: '437137578071',
+    projectId: 'farm-space',
+    authDomain: 'farm-space.firebaseapp.com',
+    storageBucket: 'farm-space.firebasestorage.app',
   );
+
 }

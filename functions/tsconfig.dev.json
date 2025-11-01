@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noUnusedLocals": false, // Often turned off for development/linting flexibility
+    "noUnusedParameters": false // Often turned off for development/linting flexibility
+  },
+  "include": [
+    "src", // This should be the primary directory it includes
+    ".eslintrc.js" // If .eslintrc.js is written in TypeScript and needs linting itself, it can be here, but usually it's fine without explicitly including it
+    // Remove if this is the only thing listed and causing the error
+  ]
+}
